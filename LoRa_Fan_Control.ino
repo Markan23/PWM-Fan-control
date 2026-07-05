@@ -1,6 +1,6 @@
 // =====================================================
 // ESP32-C3 SuperMini — Dual Fan + 3x DS18B20 + LoRa
-// Compatible with your existing gateway
+// Compatible with Home Assistant
 // =====================================================
 
 #include <RHReliableDatagram.h>
