@@ -23,8 +23,8 @@
 #define LORA_RST      4
 #define LORA_DIO0     3
 
-#define MY_ADDRESS      30
-#define GATEWAY_ADDRESS 254
+#define MY_ADDRESS      30     // This node addr
+#define GATEWAY_ADDRESS 254    // My MQTT_LoRa Gateway address
 #define LORA_FREQ       868.1
 
 const int PWM_FREQ = 25000;
@@ -76,8 +76,8 @@ void setup() {
   // Tachometers (safe until fans are connected)
   pinMode(TACH1_PIN, INPUT_PULLUP);
   pinMode(TACH2_PIN, INPUT_PULLUP);
-  // attachInterrupt(digitalPinToInterrupt(TACH1_PIN), tach1ISR, FALLING);
-  // attachInterrupt(digitalPinToInterrupt(TACH2_PIN), tach2ISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TACH1_PIN), tach1ISR, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TACH2_PIN), tach2ISR, FALLING);
 
   // LoRa
   SPI.begin(6, 2, 7, 10);
