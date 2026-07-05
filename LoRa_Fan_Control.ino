@@ -1,6 +1,6 @@
 // =====================================================
 // ESP32-C3 SuperMini — Dual Fan + 3x DS18B20 + LoRa
-// Compatible with Home Assistant
+// Compatible with Homse Assistant
 // =====================================================
 
 #include <RHReliableDatagram.h>
@@ -23,8 +23,8 @@
 #define LORA_RST      4
 #define LORA_DIO0     3
 
-#define MY_ADDRESS      30     // This node addr
-#define GATEWAY_ADDRESS 254    // My MQTT_LoRa Gateway address
+#define MY_ADDRESS      30   // This Node LoRa address
+#define GATEWAY_ADDRESS 254  // MQTT to LoRa Gateway
 #define LORA_FREQ       868.1
 
 const int PWM_FREQ = 25000;
@@ -97,36 +97,43 @@ void setup() {
   lastTachTime = lastSendTime = millis();
   Serial.println("SuperMini - 3 Temp Sensors + Dual Fan Ready");
 }
-
 void loop() {
   unsigned long now = millis();
 
   // Read all 3 DS18B20 sensors
   sensors.requestTemperatures();
-  tempZone1   = sensors.getTempCByIndex(2);
+  tempZone1   = sensors.getTempCByIndex(0);
   tempZone2   = sensors.getTempCByIndex(1);
-  tempAmbient = sensors.getTempCByIndex(0);
+  tempAmbient = sensors.getTempCByIndex(2);
 
   if (tempZone1 == DEVICE_DISCONNECTED_C) tempZone1 = -127.0;
   if (tempZone2 == DEVICE_DISCONNECTED_C) tempZone2 = -127.0;
   if (tempAmbient == DEVICE_DISCONNECTED_C) tempAmbient = -127.0;
 
-  // Receive LoRa commands
-  // if (now % 200 == 0) receiveLoRaCommands();
+  //if (now % 200 == 0) 
   receiveLoRaCommands();
+
+  // RPM calculation (now active)
+  if (now - lastTachTime >= 2000) {
+    rpm1 = (tach1Count * 60000UL) / (2000UL * 2);
+    rpm2 = (tach2Count * 60000UL) / (2000UL * 2);
+    tach1Count = 0;
+    tach2Count = 0;
+    lastTachTime = now;
+  }
 
   // Apply fan speeds
   ledcWrite(PWM1_PIN, map(getFanSpeed(1), 0, 100, 0, 255));
   ledcWrite(PWM2_PIN, map(getFanSpeed(2), 0, 100, 0, 255));
 
-  // Periodic report
-  if (now - lastSendTime >= 30000) {   // 2 minutes
+  if (now - lastSendTime >= 30000) {
     sendLoRaPacket();
     lastSendTime = now;
   }
 
-  delay(10);   // Keep watchdog happy
+  delay(10);
 }
+
 
 // ====================== FUNCTIONS ======================
 int getFanSpeed(int fanId) {
